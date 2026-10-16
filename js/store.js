@@ -34,10 +34,19 @@ const Store = (() => {
     { symbol: '₹', label: 'INR — Indian Rupee' }
   ];
 
+  const ACCENTS = [
+    { id: 'rose',     label: 'Rose',     color: '#f43f5e', soft: '#fda4af' },
+    { id: 'lavender', label: 'Lavender', color: '#8b7cf6', soft: '#c9c0fb' },
+    { id: 'sage',     label: 'Sage',     color: '#5e9e82', soft: '#a9d1bd' },
+    { id: 'peach',    label: 'Peach',    color: '#ee8a62', soft: '#f8c5ad' },
+    { id: 'ocean',    label: 'Ocean',    color: '#5b8fd9', soft: '#b1cbef' }
+  ];
+
   const DEFAULT_SETTINGS = {
     name: '',
     currency: '৳',
     theme: 'system',      // 'light' | 'dark' | 'system'
+    accent: 'rose',       // one of ACCENTS
     budget: 0,            // overall monthly budget, 0 = not set
     categoryBudgets: {}   // { categoryId: amount }
   };
@@ -64,6 +73,7 @@ const Store = (() => {
   function normalise(data) {
     const settings = { ...DEFAULT_SETTINGS, ...(data && data.settings) };
     settings.budget = toAmount(settings.budget);
+    if (!ACCENTS.some(a => a.id === settings.accent)) settings.accent = DEFAULT_SETTINGS.accent;
     const cb = {};
     Object.entries(settings.categoryBudgets || {}).forEach(([k, v]) => {
       const n = toAmount(v);
@@ -218,9 +228,10 @@ const Store = (() => {
   }
 
   function clearAll() {
-    const theme = state.settings.theme;
+    const { theme, accent } = state.settings;
     state = fresh();
     state.settings.theme = theme;
+    state.settings.accent = accent;
     save();
   }
 
@@ -273,7 +284,7 @@ const Store = (() => {
   }
 
   return {
-    CATEGORIES, CURRENCIES,
+    CATEGORIES, CURRENCIES, ACCENTS,
     all, inMonth, get, add, update, remove, totals, byCategory,
     settings, setSettings,
     exportJSON, importJSON, clearAll, loadSample,

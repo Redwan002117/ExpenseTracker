@@ -14,9 +14,10 @@
   <script>
     // Apply the saved theme before first paint to avoid a flash.
     (function () {
-      var theme = 'system';
-      try { theme = (JSON.parse(localStorage.getItem('expenseTracker.v1')) || {}).settings.theme || 'system'; } catch (e) {}
-      if (theme === 'light' || theme === 'dark') document.documentElement.setAttribute('data-theme', theme);
+      var s = {};
+      try { s = (JSON.parse(localStorage.getItem('expenseTracker.v1')) || {}).settings || {}; } catch (e) {}
+      if (s.theme === 'light' || s.theme === 'dark') document.documentElement.setAttribute('data-theme', s.theme);
+      if (typeof s.accent === 'string') document.documentElement.setAttribute('data-accent', s.accent);
     })();
   </script>
 </head>
@@ -320,6 +321,8 @@
                 <button data-theme-choice="dark"><svg class="icon"><use href="#i-moon"/></svg>Dark</button>
                 <button data-theme-choice="system">System</button>
               </div>
+              <p class="field-label swatch-label">Colour theme</p>
+              <div class="swatches" id="s-accent" role="radiogroup" aria-label="Colour theme"></div>
             </div>
           </div>
 

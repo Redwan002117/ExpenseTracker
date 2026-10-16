@@ -413,6 +413,13 @@
     cur.innerHTML = Store.CURRENCIES.map(c => `<option value="${c.symbol}">${c.symbol}  ${c.label}</option>`).join('');
     cur.value = s.currency;
     $$('#s-theme button').forEach(b => b.classList.toggle('is-active', b.dataset.themeChoice === s.theme));
+    $('#s-accent').innerHTML = Store.ACCENTS.map(a => {
+      const on = a.id === s.accent;
+      return `<button type="button" class="swatch${on ? ' is-active' : ''}" role="radio" aria-checked="${on}" data-accent="${a.id}">
+        <span class="swatch-dot" style="--sw:${a.color};--sw-soft:${a.soft}"><svg class="icon"><use href="#i-check"/></svg></span>
+        <span>${a.label}</span>
+      </button>`;
+    }).join('');
   }
 
   /* ---------- theme ---------- */
@@ -431,6 +438,17 @@
     const dark = isDark();
     $$('.icon-theme use').forEach(u => u.setAttribute('href', dark ? '#i-sun' : '#i-moon'));
     $('meta[name="theme-color"]').setAttribute('content', dark ? '#0b1120' : '#f8fafc');
+  }
+
+  function applyAccent(accent) {
+    document.documentElement.setAttribute('data-accent', accent);
+  }
+
+  function setAccent(accent) {
+    Store.setSettings({ accent });
+    applyAccent(accent);
+    render();
+    toast(`${Store.ACCENTS.find(a => a.id === accent).label} theme applied`);
   }
 
   function setTheme(theme) {
@@ -751,6 +769,10 @@
       const b = e.target.closest('[data-theme-choice]');
       if (b) setTheme(b.dataset.themeChoice);
     });
+    $('#s-accent').addEventListener('click', e => {
+      const b = e.target.closest('[data-accent]');
+      if (b && b.dataset.accent !== Store.settings().accent) setAccent(b.dataset.accent);
+    });
     $('#restore-input').addEventListener('change', async e => {
       const file = e.target.files[0];
       e.target.value = '';
@@ -761,6 +783,7 @@
         if (!(await confirmDialog({ title: 'Restore backup?', text: 'Your current data will be replaced with the backup.', yes: 'Restore' }))) return;
         const n = Store.importJSON(text);
         applyTheme(Store.settings().theme);
+        applyAccent(Store.settings().accent);
         toast(`Restored ${n} transaction${n === 1 ? '' : 's'}`);
         render();
       } catch (err) {
@@ -781,6 +804,7 @@
 
   /* ---------- start ---------- */
   applyTheme(Store.settings().theme);
+  applyAccent(Store.settings().accent);
   bindEvents();
   route();
 })();
