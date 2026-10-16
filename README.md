@@ -4,6 +4,8 @@ A responsive personal expense and budget tracker for students, built with **HTML
 
 The interface follows a "Soft & Cool" glassmorphic design system: a cool slate canvas, white rounded cards, the Nunito typeface, tinted glows instead of grey shadows, and tactile press animations.
 
+📖 **Full documentation:** [docs/DOCUMENTATION.md](docs/DOCUMENTATION.md) — user guide, architecture, data model, design system and testing.
+
 ## Features
 
 | Feature | Description |
