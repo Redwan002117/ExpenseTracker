@@ -51,7 +51,32 @@ const Store = (() => {
     categoryBudgets: {}   // { categoryId: amount }
   };
 
+  const SAMPLE_PLAN = [
+    // [dayOfMonth, type, category, amount, note]
+    [1, 'income', 'allowance', 12000, 'Monthly allowance from home'],
+    [3, 'expense', 'bills', 1500, 'Mess / hostel bill'],
+    [4, 'expense', 'food', 220, 'Lunch at canteen'],
+    [5, 'expense', 'transport', 120, 'Rickshaw to campus'],
+    [6, 'expense', 'education', 850, 'Lab manual & photocopies'],
+    [8, 'expense', 'food', 340, 'Dinner with friends'],
+    [9, 'expense', 'bills', 499, 'Mobile data pack'],
+    [10, 'income', 'parttime', 4000, 'Tuition payment'],
+    [11, 'expense', 'entertainment', 600, 'Movie night'],
+    [13, 'expense', 'transport', 160, 'Bus fare'],
+    [14, 'expense', 'food', 180, 'Snacks & tea'],
+    [16, 'expense', 'shopping', 1450, 'New t-shirt'],
+    [18, 'expense', 'health', 320, 'Pharmacy'],
+    [20, 'expense', 'food', 260, 'Biryani'],
+    [22, 'expense', 'education', 400, 'Online course'],
+    [24, 'expense', 'transport', 140, 'Ride share'],
+    [26, 'expense', 'food', 210, 'Lunch'],
+    [27, 'expense', 'other', 300, 'Gift for a friend']
+  ];
+  const SAMPLE_BUDGET = 9000;
+  const SAMPLE_CATEGORY_BUDGETS = { food: 2500, transport: 800, entertainment: 800 };
+
   let state = load();
+  tagLegacySample();
 
   /* ---------- persistence ---------- */
 
@@ -87,7 +112,8 @@ const Store = (() => {
           amount: round2(Number(t.amount)),
           category: t.category,
           date: t.date,
-          note: String(t.note || '').slice(0, 120)
+          note: String(t.note || '').slice(0, 120),
+          ...(t.sample ? { sample: true } : {})
         }))
       : [];
     return { transactions, settings };
@@ -178,6 +204,7 @@ const Store = (() => {
     const i = state.transactions.findIndex(t => t.id === id);
     if (i === -1) return null;
     state.transactions[i] = { ...state.transactions[i], ...data, id, amount: round2(Number(data.amount)) };
+    delete state.transactions[i].sample;  // once edited, it's the user's own entry
     save();
     return state.transactions[i];
   }
@@ -235,59 +262,77 @@ const Store = (() => {
     save();
   }
 
-  /** Fills the last three months with realistic student data. */
+
+  function hasSample() {
+    return state.transactions.some(t => t.sample);
+  }
+
+  /** Removes only the sample transactions (and the sample budgets, if still unchanged). */
+  function removeSample() {
+    const before = state.transactions.length;
+    state.transactions = state.transactions.filter(t => !t.sample);
+    const s = state.settings;
+    if (s.sampleBudgets) {
+      if (s.budget === SAMPLE_BUDGET) s.budget = 0;
+      if (JSON.stringify(s.categoryBudgets) === JSON.stringify(SAMPLE_CATEGORY_BUDGETS)) s.categoryBudgets = {};
+      delete s.sampleBudgets;
+    }
+    save();
+    return before - state.transactions.length;
+  }
+
+  /**
+   * Sample data loaded before tagging existed has no `sample` flag.
+   * Runs once: tags entries whose type, category and note exactly match the sample plan.
+   */
+  function tagLegacySample() {
+    if (state.settings.sampleTagged) return;
+    const keys = new Set(SAMPLE_PLAN.map(([, type, category, , note]) => `${type}|${category}|${note}`));
+    let tagged = 0;
+    state.transactions.forEach(t => {
+      if (!t.sample && keys.has(`${t.type}|${t.category}|${t.note}`)) { t.sample = true; tagged++; }
+    });
+    if (tagged && state.settings.budget === SAMPLE_BUDGET) state.settings.sampleBudgets = true;
+    state.settings.sampleTagged = true;
+    save();
+  }
+
+  /** Adds three months of realistic student data, tagged so it can be removed later. */
   function loadSample() {
     const now = new Date();
     const items = [];
-    const plan = [
-      // [dayOfMonth, type, category, amount, note]
-      [1, 'income', 'allowance', 12000, 'Monthly allowance from home'],
-      [3, 'expense', 'bills', 1500, 'Mess / hostel bill'],
-      [4, 'expense', 'food', 220, 'Lunch at canteen'],
-      [5, 'expense', 'transport', 120, 'Rickshaw to campus'],
-      [6, 'expense', 'education', 850, 'Lab manual & photocopies'],
-      [8, 'expense', 'food', 340, 'Dinner with friends'],
-      [9, 'expense', 'bills', 499, 'Mobile data pack'],
-      [10, 'income', 'parttime', 4000, 'Tuition payment'],
-      [11, 'expense', 'entertainment', 600, 'Movie night'],
-      [13, 'expense', 'transport', 160, 'Bus fare'],
-      [14, 'expense', 'food', 180, 'Snacks & tea'],
-      [16, 'expense', 'shopping', 1450, 'New t-shirt'],
-      [18, 'expense', 'health', 320, 'Pharmacy'],
-      [20, 'expense', 'food', 260, 'Biryani'],
-      [22, 'expense', 'education', 400, 'Online course'],
-      [24, 'expense', 'transport', 140, 'Ride share'],
-      [26, 'expense', 'food', 210, 'Lunch'],
-      [27, 'expense', 'other', 300, 'Gift for a friend']
-    ];
     for (let back = 2; back >= 0; back--) {
       const base = new Date(now.getFullYear(), now.getMonth() - back, 1);
       const key = monthKey(base);
       const lastDay = back === 0 ? now.getDate() : daysInMonth(key);
-      plan.forEach(([day, type, category, amount, note], i) => {
+      SAMPLE_PLAN.forEach(([day, type, category, amount, note], i) => {
         if (day > lastDay) return;
         const wobble = type === 'expense' ? 0.8 + ((i * 7 + back * 13) % 9) / 20 : 1;
         items.push({
           id: uid() + i + back,
           type, category, note,
           amount: round2(Math.round(amount * wobble)),
-          date: `${key}-${pad(day)}`
+          date: `${key}-${pad(day)}`,
+          sample: true
         });
       });
     }
-    state.transactions = items;
-    if (!state.settings.budget) state.settings.budget = 9000;
-    if (!Object.keys(state.settings.categoryBudgets).length) {
-      state.settings.categoryBudgets = { food: 2500, transport: 800, entertainment: 800 };
+    state.transactions = state.transactions.filter(t => !t.sample).concat(items);
+    const s = state.settings;
+    if (!s.budget && !Object.keys(s.categoryBudgets).length) {
+      s.budget = SAMPLE_BUDGET;
+      s.categoryBudgets = { ...SAMPLE_CATEGORY_BUDGETS };
+      s.sampleBudgets = true;
     }
     save();
+    return items.length;
   }
 
   return {
     CATEGORIES, CURRENCIES, ACCENTS,
     all, inMonth, get, add, update, remove, totals, byCategory,
     settings, setSettings,
-    exportJSON, importJSON, clearAll, loadSample,
+    exportJSON, importJSON, clearAll, loadSample, removeSample, hasSample,
     todayISO, monthKey, shiftMonth, daysInMonth, getCategory, round2
   };
 })();

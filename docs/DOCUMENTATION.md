@@ -54,7 +54,7 @@ The app has five pages (Dashboard, Transactions, Reports, Budget, Settings) plus
 | Budget alerts | Pop-up warning at 80% and when a limit is exceeded | After saving an expense |
 | CSV export | Downloads filtered or all transactions for Excel / Google Sheets | Transactions, Settings |
 | Backup and restore | Saves and reloads all data as a `.json` file | Settings |
-| Sample data | Loads three months of realistic student transactions | Settings |
+| Sample data | Loads three months of example transactions; the same button removes them again | Settings |
 | Profile and currency | Name for the greeting; currency ৳, $, €, £ or ₹ | Settings |
 | Light / dark / system | Theme mode, remembered between visits | Settings, top bar |
 | Colour themes | Rose, Lavender, Sage, Peach and Ocean accents | Settings |
@@ -138,7 +138,7 @@ Budgets apply to every month; the page shows progress for the month selected at 
 | Colour theme | Rose, Lavender, Sage, Peach, Ocean |
 | Export CSV | All transactions |
 | Download / Restore backup | Full data as `.json`; restoring replaces current data after confirmation |
-| Load sample data | Replaces current data with three months of examples |
+| Load / Remove sample data | Adds three months of example transactions next to your own; once loaded, the button removes only the examples (your own and any you edited stay) |
 | Delete everything | Removes all transactions and budgets; keeps theme choices |
 
 ### Keyboard shortcuts

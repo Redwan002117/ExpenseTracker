@@ -19,7 +19,7 @@ The interface follows a "Soft & Cool" glassmorphic design system: a cool slate c
 | Budget | Overall monthly limit plus optional per-category limits; warnings at 80% and when you go over |
 | Smart insight | Highlights your biggest category, compares with last month and suggests an action |
 | Export & backup | Export CSV (opens in Excel / Google Sheets), download and restore a JSON backup |
-| Sample data | Three months of realistic example data to explore the app |
+| Sample data | Three months of example data to explore the app; the same button removes it again |
 | Dark / light mode | Follows the system by default; can be set manually and is remembered |
 | Colour themes | Five soft accent themes — Rose, Lavender, Sage, Peach and Ocean — each with a faintly tinted canvas; expenses and warnings stay red in every theme |
 | Responsive | Fixed sidebar on desktop, floating glass bottom navigation on mobile |

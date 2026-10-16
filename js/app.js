@@ -413,6 +413,12 @@
     cur.innerHTML = Store.CURRENCIES.map(c => `<option value="${c.symbol}">${c.symbol}  ${c.label}</option>`).join('');
     cur.value = s.currency;
     $$('#s-theme button').forEach(b => b.classList.toggle('is-active', b.dataset.themeChoice === s.theme));
+    const sample = Store.hasSample();
+    $('#sample-btn b').textContent = sample ? 'Remove sample data' : 'Load sample data';
+    $('#sample-btn small').textContent = sample
+      ? 'Delete the example transactions, keep your own'
+      : 'Three months of example transactions';
+    $('#sample-btn use').setAttribute('href', sample ? '#i-trash' : '#i-sparkles');
     $('#s-accent').innerHTML = Store.ACCENTS.map(a => {
       const on = a.id === s.accent;
       return `<button type="button" class="swatch${on ? ' is-active' : ''}" role="radio" aria-checked="${on}" data-accent="${a.id}">
@@ -675,16 +681,22 @@
           toast('Backup downloaded');
           break;
         case 'sample': {
-          if (Store.all().length && !(await confirmDialog({
-            title: 'Replace your data?',
-            text: 'Loading sample data will replace all your current transactions.',
-            yes: 'Replace'
-          }))) return;
-          Store.loadSample();
-          ui.month = Store.monthKey(new Date());
-          toast('Sample data loaded', 'info');
-          location.hash = '#dashboard';
-          render();
+          if (Store.hasSample()) {
+            if (!(await confirmDialog({
+              title: 'Remove sample data?',
+              text: 'All example transactions will be deleted. Anything you added or edited yourself stays.',
+              yes: 'Remove'
+            }))) return;
+            const n = Store.removeSample();
+            toast(`Removed ${n} sample transaction${n === 1 ? '' : 's'}`, 'danger');
+            render();
+          } else {
+            Store.loadSample();
+            ui.month = Store.monthKey(new Date());
+            toast('Sample data loaded — remove it anytime from Settings', 'info');
+            location.hash = '#dashboard';
+            render();
+          }
           break;
         }
         case 'clear': {
