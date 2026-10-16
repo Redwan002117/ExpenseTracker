@@ -469,6 +469,23 @@
     lastFocus = document.activeElement;
     $('#' + id).hidden = false;
     document.body.style.overflow = 'hidden';
+    syncViewport();
+  }
+
+  /** Keeps open sheets inside the part of the screen the on-screen keyboard leaves visible. */
+  function syncViewport() {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const root = document.documentElement.style;
+    root.setProperty('--vv-top', vv.offsetTop + 'px');
+    root.setProperty('--vv-height', vv.height + 'px');
+  }
+
+  function keepFieldVisible(e) {
+    const field = e.target.closest('input, select, textarea');
+    if (!field || !field.closest('.sheet')) return;
+    // wait for the keyboard animation, then bring the field into the visible part of the sheet
+    setTimeout(() => field.scrollIntoView({ block: 'center', behavior: 'smooth' }), 300);
   }
 
   function closeModal(id) {
@@ -522,7 +539,7 @@
     $$('[data-currency]').forEach(el => { el.textContent = Store.settings().currency; });
 
     openModal('tx-modal');
-    setTimeout(() => $('#tx-amount').focus({ preventScroll: true }), 60);
+    if (window.matchMedia('(pointer: fine)').matches) setTimeout(() => $('#tx-amount').focus({ preventScroll: true }), 60);
   }
 
   /** Spending ratios for a month, used to detect budget threshold crossings. */
@@ -790,6 +807,13 @@
         toast(err instanceof SyntaxError ? 'That file isn’t valid JSON.' : err.message, 'danger');
       }
     });
+
+    // on-screen keyboard
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', syncViewport);
+      window.visualViewport.addEventListener('scroll', syncViewport);
+    }
+    document.addEventListener('focusin', keepFieldVisible);
 
     // redraw charts on resize
     let resizeTimer;
