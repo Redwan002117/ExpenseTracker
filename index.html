@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>ExpenseTracker</title>
+  <meta name="description" content="A soft, simple personal expense and budget tracker for students. Built with HTML, CSS and JavaScript.">
+  <meta name="theme-color" content="#f8fafc">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='20' fill='%23f43f5e'/%3E%3Cpath d='M20 24h24a4 4 0 0 1 4 4v14a4 4 0 0 1-4 4H20a4 4 0 0 1-4-4V22a4 4 0 0 1 4-4h20' fill='none' stroke='white' stroke-width='4' stroke-linecap='round'/%3E%3Ccircle cx='40' cy='35' r='3' fill='white'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script>
+    // Apply the saved theme before first paint to avoid a flash.
+    (function () {
+      var theme = 'system';
+      try { theme = (JSON.parse(localStorage.getItem('expenseTracker.v1')) || {}).settings.theme || 'system'; } catch (e) {}
+      if (theme === 'light' || theme === 'dark') document.documentElement.setAttribute('data-theme', theme);
+    })();
+  </script>
+</head>
+<body>
+
+  <!-- Icon sprite (Lucide-style strokes) -->
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></symbol>
+    <symbol id="i-list" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></symbol>
+    <symbol id="i-pie" viewBox="0 0 24 24"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></symbol>
+    <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></symbol>
+    <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></symbol>
+    <symbol id="i-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+    <symbol id="i-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+    <symbol id="i-up" viewBox="0 0 24 24"><path d="m22 7-8.5 8.5-5-5L2 17"/><path d="M16 7h6v6"/></symbol>
+    <symbol id="i-down" viewBox="0 0 24 24"><path d="m22 17-8.5-8.5-5 5L2 7"/><path d="M16 17h6v-6"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></symbol>
+    <symbol id="i-sparkles" viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 3v4M17 5h4"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+    <symbol id="i-wallet" viewBox="0 0 24 24"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></symbol>
+  </svg>
+
+  <!-- ===== Desktop sidebar ===== -->
+  <aside class="sidebar" aria-label="Main navigation">
+    <a class="brand" href="#dashboard">
+      <span class="brand-mark"><svg class="icon"><use href="#i-wallet"/></svg></span>
+      <span class="brand-name">Expense<span>Tracker</span></span>
+    </a>
+    <nav class="side-nav">
+      <a href="#dashboard" data-nav="dashboard"><svg class="icon"><use href="#i-home"/></svg>Dashboard</a>
+      <a href="#transactions" data-nav="transactions"><svg class="icon"><use href="#i-list"/></svg>Transactions</a>
+      <a href="#reports" data-nav="reports"><svg class="icon"><use href="#i-pie"/></svg>Reports</a>
+      <a href="#budget" data-nav="budget"><svg class="icon"><use href="#i-target"/></svg>Budget</a>
+      <a href="#settings" data-nav="settings"><svg class="icon"><use href="#i-sliders"/></svg>Settings</a>
+    </nav>
+    <button class="btn btn-brand btn-block" data-action="add"><svg class="icon"><use href="#i-plus"/></svg>Add transaction</button>
+    <div class="side-foot">
+      <p class="micro">Stored on this device</p>
+      <p class="side-foot-text">Your data never leaves your browser.</p>
+    </div>
+  </aside>
+
+  <!-- ===== Mobile top bar ===== -->
+  <header class="topbar">
+    <a class="brand" href="#dashboard">
+      <span class="brand-mark"><svg class="icon"><use href="#i-wallet"/></svg></span>
+      <span class="brand-name">Expense<span>Tracker</span></span>
+    </a>
+    <div class="topbar-actions">
+      <button class="icon-btn" data-action="toggle-theme" aria-label="Toggle dark mode"><svg class="icon icon-theme"><use href="#i-moon"/></svg></button>
+      <a class="icon-btn" href="#settings" aria-label="Settings"><svg class="icon"><use href="#i-sliders"/></svg></a>
+    </div>
+  </header>
+
+  <main class="main">
+    <div class="container">
+
+      <!-- ================= DASHBOARD ================= -->
+      <section class="view" id="view-dashboard" data-title="Dashboard">
+        <div class="page-head">
+          <div>
+            <p class="micro" id="today-label">Today</p>
+            <h1 class="page-title" id="greeting">Hello there</h1>
+          </div>
+          <div class="page-head-actions">
+            <div class="month-switch" data-month-switch>
+              <button class="icon-btn" data-month-step="-1" aria-label="Previous month"><svg class="icon"><use href="#i-left"/></svg></button>
+              <span class="month-label" data-month-label>Month</span>
+              <button class="icon-btn" data-month-step="1" aria-label="Next month"><svg class="icon"><use href="#i-right"/></svg></button>
+            </div>
+            <button class="icon-btn hide-mobile" data-action="toggle-theme" aria-label="Toggle dark mode"><svg class="icon icon-theme"><use href="#i-moon"/></svg></button>
+          </div>
+        </div>
+
+        <div class="bento">
+          <div class="col-7 stack">
+            <div class="hero" id="hero" data-state="ok">
+              <span class="ring ring-a"></span><span class="ring ring-b"></span>
+              <p class="micro hero-micro">Balance this month</p>
+              <h2 class="hero-amount" id="hero-amount">0</h2>
+              <p class="hero-text" id="hero-text">Add your first transaction to get started.</p>
+              <button class="btn btn-hero" data-action="add"><svg class="icon"><use href="#i-plus"/></svg>Add transaction</button>
+            </div>
+
+            <div class="stat-row">
+              <div class="stat card tint-emerald">
+                <span class="stat-icon"><svg class="icon"><use href="#i-up"/></svg></span>
+                <p class="micro">Income</p>
+                <p class="stat-value" id="stat-income">0</p>
+              </div>
+              <div class="stat card tint-rose">
+                <span class="stat-icon"><svg class="icon"><use href="#i-down"/></svg></span>
+                <p class="micro">Expenses</p>
+                <p class="stat-value" id="stat-expense">0</p>
+              </div>
+              <div class="stat card tint-sky">
+                <span class="stat-icon"><svg class="icon"><use href="#i-calendar"/></svg></span>
+                <p class="micro">Daily average</p>
+                <p class="stat-value" id="stat-daily">0</p>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-head">
+                <div><p class="micro">Latest</p><h3 class="card-title">Recent transactions</h3></div>
+                <a class="link" href="#transactions">View all</a>
+              </div>
+              <ul class="tx-list" id="recent-list"></ul>
+            </div>
+          </div>
+
+          <div class="col-5 stack">
+            <div class="insight" id="insight">
+              <span class="badge badge-indigo"><svg class="icon"><use href="#i-sparkles"/></svg>Smart insight</span>
+              <h4 class="insight-title" id="insight-title">Nothing to analyse yet</h4>
+              <p class="insight-text" id="insight-text">Once you add a few expenses, you’ll see where your money goes.</p>
+              <div class="frost">
+                <span class="frost-label">Actionable tip</span>
+                <span id="insight-tip">Try the sample data in Settings to explore the app.</span>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-head">
+                <div><p class="micro">Monthly budget</p><h3 class="card-title" id="dash-budget-title">No budget set</h3></div>
+                <a class="link" href="#budget">Edit</a>
+              </div>
+              <div class="progress" aria-hidden="true"><span id="dash-budget-bar"></span></div>
+              <div class="progress-meta">
+                <span id="dash-budget-spent">0 spent</span>
+                <span id="dash-budget-left"></span>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-head">
+                <div><p class="micro">Breakdown</p><h3 class="card-title">Where it went</h3></div>
+                <a class="link" href="#reports">Reports</a>
+              </div>
+              <div class="donut-wrap">
+                <canvas class="donut-canvas" id="dash-donut" aria-label="Spending by category chart" role="img"></canvas>
+                <ul class="legend" id="dash-legend"></ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= TRANSACTIONS ================= -->
+      <section class="view" id="view-transactions" data-title="Transactions" hidden>
+        <div class="page-head">
+          <div><p class="micro">History</p><h1 class="page-title">Transactions</h1></div>
+          <div class="page-head-actions">
+            <button class="btn btn-soft" data-action="export-csv"><svg class="icon"><use href="#i-download"/></svg>Export CSV</button>
+            <button class="btn btn-brand hide-mobile" data-action="add"><svg class="icon"><use href="#i-plus"/></svg>Add</button>
+          </div>
+        </div>
+
+        <div class="card toolbar">
+          <label class="search">
+            <svg class="icon"><use href="#i-search"/></svg>
+            <input type="search" id="f-search" placeholder="Search notes or categories…" autocomplete="off">
+          </label>
+          <div class="pills" role="group" aria-label="Type filter" id="f-type">
+            <button class="pill is-active" data-type="all">All</button>
+            <button class="pill" data-type="expense">Expenses</button>
+            <button class="pill" data-type="income">Income</button>
+          </div>
+          <div class="toolbar-selects">
+            <label class="select-wrap"><span class="sr-only">Category</span>
+              <select id="f-category"><option value="all">All categories</option></select>
+            </label>
+            <label class="select-wrap"><span class="sr-only">Month</span>
+              <select id="f-month"><option value="all">All months</option></select>
+            </label>
+          </div>
+        </div>
+
+        <div class="summary-strip" id="tx-summary"></div>
+        <div id="tx-groups"></div>
+      </section>
+
+      <!-- ================= REPORTS ================= -->
+      <section class="view" id="view-reports" data-title="Reports" hidden>
+        <div class="page-head">
+          <div><p class="micro">Analytics</p><h1 class="page-title">Reports</h1></div>
+          <div class="month-switch" data-month-switch>
+            <button class="icon-btn" data-month-step="-1" aria-label="Previous month"><svg class="icon"><use href="#i-left"/></svg></button>
+            <span class="month-label" data-month-label>Month</span>
+            <button class="icon-btn" data-month-step="1" aria-label="Next month"><svg class="icon"><use href="#i-right"/></svg></button>
+          </div>
+        </div>
+
+        <div class="stat-row stat-row-4">
+          <div class="stat card"><p class="micro">Income</p><p class="stat-value text-emerald" id="r-income">0</p></div>
+          <div class="stat card"><p class="micro">Expenses</p><p class="stat-value text-rose" id="r-expense">0</p></div>
+          <div class="stat card"><p class="micro">Savings rate</p><p class="stat-value text-indigo" id="r-rate">—</p></div>
+          <div class="stat card"><p class="micro">Biggest expense</p><p class="stat-value text-sky" id="r-biggest">—</p></div>
+        </div>
+
+        <div class="bento">
+          <div class="col-5 card">
+            <div class="card-head"><div><p class="micro">By category</p><h3 class="card-title">Spending split</h3></div></div>
+            <canvas class="donut-canvas donut-lg" id="r-donut" role="img" aria-label="Spending split by category"></canvas>
+            <ul class="legend legend-wide" id="r-legend"></ul>
+          </div>
+          <div class="col-7 stack">
+            <div class="card">
+              <div class="card-head">
+                <div><p class="micro">Last 6 months</p><h3 class="card-title">Income vs expenses</h3></div>
+                <div class="key"><span class="key-dot bg-emerald"></span>Income<span class="key-dot bg-rose"></span>Expenses</div>
+              </div>
+              <canvas class="bar-canvas" id="r-bars" role="img" aria-label="Income and expenses for the last six months"></canvas>
+            </div>
+            <div class="card">
+              <div class="card-head"><div><p class="micro">Ranking</p><h3 class="card-title">Top categories</h3></div></div>
+              <ul class="rank" id="r-rank"></ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= BUDGET ================= -->
+      <section class="view" id="view-budget" data-title="Budget" hidden>
+        <div class="page-head">
+          <div><p class="micro">Planning</p><h1 class="page-title">Budget</h1></div>
+          <div class="month-switch" data-month-switch>
+            <button class="icon-btn" data-month-step="-1" aria-label="Previous month"><svg class="icon"><use href="#i-left"/></svg></button>
+            <span class="month-label" data-month-label>Month</span>
+            <button class="icon-btn" data-month-step="1" aria-label="Next month"><svg class="icon"><use href="#i-right"/></svg></button>
+          </div>
+        </div>
+
+        <div class="bento">
+          <div class="col-5 stack">
+            <div class="hero hero-indigo" id="budget-hero">
+              <span class="ring ring-a"></span><span class="ring ring-b"></span>
+              <p class="micro hero-micro">Spent of budget</p>
+              <h2 class="hero-amount" id="budget-pct">0%</h2>
+              <p class="hero-text" id="budget-hero-text">Set a monthly limit to start tracking.</p>
+              <div class="progress progress-on-hero"><span id="budget-hero-bar"></span></div>
+            </div>
+            <form class="card" id="budget-form" novalidate>
+              <div class="card-head"><div><p class="micro">Overall</p><h3 class="card-title">Monthly limit</h3></div></div>
+              <label class="field">
+                <span class="field-label">Budget amount</span>
+                <div class="input-affix"><span class="affix" data-currency>৳</span>
+                  <input type="number" id="budget-input" min="0" step="1" inputmode="decimal" placeholder="e.g. 10000">
+                </div>
+              </label>
+              <p class="hint">You’ll get a warning at 80% and when you go over.</p>
+              <button class="btn btn-dark btn-block" type="submit"><svg class="icon"><use href="#i-check"/></svg>Save budget</button>
+            </form>
+          </div>
+
+          <form class="col-7 card" id="cat-budget-form" novalidate>
+            <div class="card-head">
+              <div><p class="micro">Per category</p><h3 class="card-title">Category limits</h3></div>
+              <button class="btn btn-dark btn-sm" type="submit">Save limits</button>
+            </div>
+            <p class="hint">Optional. Leave blank for no limit.</p>
+            <ul class="cat-budgets" id="cat-budgets"></ul>
+          </form>
+        </div>
+      </section>
+
+      <!-- ================= SETTINGS ================= -->
+      <section class="view" id="view-settings" data-title="Settings" hidden>
+        <div class="page-head">
+          <div><p class="micro">Preferences</p><h1 class="page-title">Settings</h1></div>
+        </div>
+
+        <div class="bento">
+          <div class="col-6 stack">
+            <form class="card" id="profile-form" novalidate>
+              <div class="card-head"><div><p class="micro">Profile</p><h3 class="card-title">About you</h3></div></div>
+              <label class="field">
+                <span class="field-label">Your name</span>
+                <input type="text" id="s-name" maxlength="30" placeholder="e.g. Maruf">
+              </label>
+              <label class="field">
+                <span class="field-label">Currency</span>
+                <div class="select-wrap"><select id="s-currency"></select></div>
+              </label>
+              <button class="btn btn-dark btn-block" type="submit"><svg class="icon"><use href="#i-check"/></svg>Save profile</button>
+            </form>
+
+            <div class="card">
+              <div class="card-head"><div><p class="micro">Appearance</p><h3 class="card-title">Theme</h3></div></div>
+              <div class="segmented" id="s-theme" role="group" aria-label="Theme">
+                <button data-theme-choice="light"><svg class="icon"><use href="#i-sun"/></svg>Light</button>
+                <button data-theme-choice="dark"><svg class="icon"><use href="#i-moon"/></svg>Dark</button>
+                <button data-theme-choice="system">System</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-6 stack">
+            <div class="card">
+              <div class="card-head"><div><p class="micro">Your data</p><h3 class="card-title">Backup &amp; export</h3></div></div>
+              <div class="action-list">
+                <button class="action" data-action="export-csv-all"><span class="action-icon tint-sky"><svg class="icon"><use href="#i-download"/></svg></span><span><b>Export CSV</b><small>Open in Excel or Google Sheets</small></span></button>
+                <button class="action" data-action="backup"><span class="action-icon tint-indigo"><svg class="icon"><use href="#i-download"/></svg></span><span><b>Download backup</b><small>Save everything as a .json file</small></span></button>
+                <label class="action"><span class="action-icon tint-emerald"><svg class="icon"><use href="#i-upload"/></svg></span><span><b>Restore backup</b><small>Load a .json backup file</small></span><input type="file" id="restore-input" accept="application/json,.json" hidden></label>
+                <button class="action" data-action="sample"><span class="action-icon tint-rose"><svg class="icon"><use href="#i-sparkles"/></svg></span><span><b>Load sample data</b><small>Three months of example transactions</small></span></button>
+              </div>
+            </div>
+            <div class="card danger-card">
+              <div class="card-head"><div><p class="micro">Danger zone</p><h3 class="card-title">Clear all data</h3></div></div>
+              <p class="hint">Deletes every transaction and budget on this device. This can’t be undone.</p>
+              <button class="btn btn-danger btn-block" data-action="clear"><svg class="icon"><use href="#i-trash"/></svg>Delete everything</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- ===== Mobile floating glass nav ===== -->
+  <nav class="bottom-nav" aria-label="Main navigation">
+    <a href="#dashboard" data-nav="dashboard" aria-label="Dashboard"><svg class="icon"><use href="#i-home"/></svg><span>Home</span></a>
+    <a href="#transactions" data-nav="transactions" aria-label="Transactions"><svg class="icon"><use href="#i-list"/></svg><span>History</span></a>
+    <button class="fab" data-action="add" aria-label="Add transaction"><svg class="icon"><use href="#i-plus"/></svg></button>
+    <a href="#reports" data-nav="reports" aria-label="Reports"><svg class="icon"><use href="#i-pie"/></svg><span>Reports</span></a>
+    <a href="#budget" data-nav="budget" aria-label="Budget"><svg class="icon"><use href="#i-target"/></svg><span>Budget</span></a>
+  </nav>
+
+  <!-- ===== Add / edit transaction sheet ===== -->
+  <div class="modal" id="tx-modal" hidden>
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="tx-modal-title">
+      <div class="drag-handle"></div>
+      <div class="sheet-head">
+        <h2 class="sheet-title" id="tx-modal-title">New transaction</h2>
+        <button class="icon-btn" data-action="close-modal" aria-label="Close"><svg class="icon"><use href="#i-x"/></svg></button>
+      </div>
+      <form id="tx-form" novalidate>
+        <div class="segmented segmented-type" id="tx-type" role="group" aria-label="Transaction type">
+          <button type="button" data-type="expense" class="is-active">Expense</button>
+          <button type="button" data-type="income">Income</button>
+        </div>
+
+        <label class="field">
+          <span class="field-label">Amount</span>
+          <div class="input-affix input-amount"><span class="affix" data-currency>৳</span>
+            <input type="number" id="tx-amount" min="0" step="0.01" inputmode="decimal" placeholder="0.00" required>
+          </div>
+          <span class="field-error" id="err-amount"></span>
+        </label>
+
+        <div class="field">
+          <span class="field-label">Category</span>
+          <div class="cat-grid" id="tx-categories" role="radiogroup" aria-label="Category"></div>
+          <span class="field-error" id="err-category"></span>
+        </div>
+
+        <div class="field-row">
+          <label class="field">
+            <span class="field-label">Date</span>
+            <input type="date" id="tx-date" required>
+            <span class="field-error" id="err-date"></span>
+          </label>
+          <label class="field">
+            <span class="field-label">Note</span>
+            <input type="text" id="tx-note" maxlength="120" placeholder="Optional">
+          </label>
+        </div>
+
+        <div class="sheet-actions">
+          <button type="button" class="btn btn-danger-soft" id="tx-delete" hidden><svg class="icon"><use href="#i-trash"/></svg>Delete</button>
+          <button type="submit" class="btn btn-dark btn-grow"><svg class="icon"><use href="#i-check"/></svg><span id="tx-submit-label">Save</span></button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== Confirm dialog ===== -->
+  <div class="modal" id="confirm-modal" hidden>
+    <div class="sheet sheet-sm" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title" aria-describedby="confirm-text">
+      <div class="drag-handle"></div>
+      <span class="confirm-icon"><svg class="icon"><use href="#i-alert"/></svg></span>
+      <h2 class="sheet-title" id="confirm-title">Are you sure?</h2>
+      <p class="hint" id="confirm-text"></p>
+      <div class="sheet-actions">
+        <button class="btn btn-soft btn-grow" data-confirm="no">Cancel</button>
+        <button class="btn btn-danger btn-grow" data-confirm="yes" id="confirm-yes">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+
+  <script src="js/store.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
