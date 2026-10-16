@@ -42,7 +42,9 @@ Repository **Settings → Pages → Build and deployment → Deploy from a branc
 
 ```
 ExpenseTracker/
-├── index.html        # Markup for all views, icon sprite, dialogs
+├── index.html        # Markup for all views, icon sprite, dialogs, SEO / Open Graph meta
+├── manifest.webmanifest  # Install-to-home-screen name, colours and icons
+├── assets/           # Favicon, app icons, og-image.png (1200×630 link preview)
 ├── css/
 │   └── style.css     # Design tokens, light/dark themes, components, responsive layout
 └── js/
