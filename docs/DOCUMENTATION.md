@@ -77,7 +77,7 @@ Nothing needs installing: open `index.html` in a browser and the app runs.
 1. Make sure the repository is public (**Settings → General → Danger Zone → Change visibility**). Free GitHub Pages needs a public repository.
 2. Open **Settings → Pages**.
 3. Under *Build and deployment*, choose **Deploy from a branch**, branch `main`, folder `/ (root)`, and save.
-4. After about a minute the site is live at `https://redwan002117.github.io/expensetracker/`.
+4. After about a minute the site is live at `https://redwan002117.github.io/ExpenseTracker/`.
 
 To keep the repository private, deploy the folder to Netlify or Vercel instead; both host static sites from private repositories for free.
 

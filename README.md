@@ -1,5 +1,7 @@
 # ExpenseTracker
 
+**Live app:** https://redwan002117.github.io/ExpenseTracker/
+
 A responsive personal expense and budget tracker for students, built with **HTML, CSS and vanilla JavaScript** — no frameworks, no build step, no backend.
 
 The interface follows a "Soft & Cool" glassmorphic design system: a cool slate canvas, white rounded cards, the Nunito typeface, tinted glows instead of grey shadows, and tactile press animations.
@@ -34,7 +36,7 @@ No installation needed. Either:
 
 ### Deploy to GitHub Pages
 
-Repository **Settings → Pages → Build and deployment → Deploy from a branch → `main` / root**. The site will be live at `https://<username>.github.io/ExpenseTracker/`.
+Repository **Settings → Pages → Build and deployment → Deploy from a branch → `main` / root**. The site will be live at `https://redwan002117.github.io/ExpenseTracker/`.
 
 ## Project structure
 
