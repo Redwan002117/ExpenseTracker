@@ -715,3 +715,21 @@ input[type="number"] { -moz-appearance: textfield; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }
+
+/* ---------- Repeat every month (switch in the add/edit sheet) ---------- */
+.repeat-toggle { display: flex; align-items: center; gap: 0.85rem; margin: 0.25rem 0 1.1rem; padding: 0.75rem 0.9rem; border-radius: var(--r-inner); background: var(--recess); border: 1px solid var(--border-strong); cursor: pointer; }
+.repeat-toggle input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.repeat-track { position: relative; flex: none; width: 2.6rem; height: 1.5rem; border-radius: 999px; background: var(--border-strong); transition: background-color 0.2s; }
+.repeat-track::after { content: ''; position: absolute; top: 3px; left: 3px; width: calc(1.5rem - 6px); height: calc(1.5rem - 6px); border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.25); transition: transform 0.2s; }
+.repeat-toggle input:checked + .repeat-track { background: var(--brand, var(--rose)); }
+.repeat-toggle input:checked + .repeat-track::after { transform: translateX(1.1rem); }
+.repeat-toggle input:focus-visible + .repeat-track { outline: 2px solid var(--brand, var(--rose)); outline-offset: 2px; }
+.repeat-text { display: grid; gap: 0.1rem; min-width: 0; }
+.repeat-title { font-weight: 800; color: var(--ink-2); font-size: 14px; }
+.repeat-hint { font-size: 12px; color: var(--body-2); }
+.tx-repeat-tag { color: var(--body-2); font-weight: 800; }
+
+/* Undo in a toast */
+.toast-action { margin-left: auto; padding: 0.35rem 0.85rem; border-radius: 999px; border: 0; font: inherit; font-weight: 900; font-size: 12.5px; cursor: pointer; pointer-events: auto; background: rgba(var(--brand-rgb), 0.14); color: var(--brand-600); }
+.toast-action:hover { background: rgba(var(--brand-rgb), 0.24); }
+@media (prefers-reduced-motion: reduce) { .repeat-track, .repeat-track::after { transition: none; } }

@@ -64,17 +64,28 @@
 
   /* ---------- small UI helpers ---------- */
 
-  function toast(message, kind = 'success') {
+  /** A short message; `action` adds a button (e.g. Undo) and keeps the toast up a little longer. */
+  function toast(message, kind = 'success', action = null) {
     const icons = { success: 'i-check', warn: 'i-alert', danger: 'i-alert', info: 'i-sparkles' };
     const el = document.createElement('div');
     el.className = `toast toast-${kind}`;
     el.setAttribute('role', kind === 'danger' || kind === 'warn' ? 'alert' : 'status');
     el.innerHTML = `<span class="toast-icon"><svg class="icon"><use href="#${icons[kind]}"/></svg></span><span>${escapeHtml(message)}</span>`;
-    $('#toasts').appendChild(el);
-    setTimeout(() => {
+    const leave = () => {
+      if (el.classList.contains('is-leaving')) return;
       el.classList.add('is-leaving');
       setTimeout(() => el.remove(), 300);
-    }, kind === 'warn' || kind === 'danger' ? 4500 : 2800);
+    };
+    if (action) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'toast-action';
+      btn.textContent = action.label;
+      btn.addEventListener('click', () => { action.run(); leave(); });
+      el.appendChild(btn);
+    }
+    $('#toasts').appendChild(el);
+    setTimeout(leave, action ? 6000 : kind === 'warn' || kind === 'danger' ? 4500 : 2800);
   }
 
   function emojiBadge(cat) {
@@ -84,7 +95,8 @@
   function txRow(t) {
     const cat = Store.getCategory(t.type, t.category);
     const title = t.note ? escapeHtml(t.note) : cat.label;
-    const sub = t.note ? `${cat.label} · ${friendlyDate(t.date)}` : friendlyDate(t.date);
+    const repeatTag = t.repeat === 'monthly' || t.repeatOf ? ' · <span class="tx-repeat-tag">↻ Monthly</span>' : '';
+    const sub = (t.note ? `${cat.label} · ${friendlyDate(t.date)}` : friendlyDate(t.date)) + repeatTag;
     const amt = t.type === 'income' ? money(t.amount, { sign: true }) : money(-t.amount);
     return `<li><button class="tx" data-edit="${t.id}" aria-label="Edit ${escapeHtml(cat.label)} ${amt}">
       ${emojiBadge(cat)}
@@ -539,6 +551,9 @@
     $('#tx-amount').value = tx ? tx.amount : '';
     $('#tx-date').value = tx ? tx.date : defaultDate;
     $('#tx-note').value = tx ? tx.note : '';
+    $('#tx-repeat').checked = Boolean(tx && tx.repeat === 'monthly');
+    // A copy made by a repeating transaction is edited on its own; the repeat lives on the original.
+    $('#tx-repeat').closest('.repeat-toggle').hidden = Boolean(tx && tx.repeatOf);
     $('#tx-modal-title').textContent = tx ? 'Edit transaction' : 'New transaction';
     $('#tx-submit-label').textContent = tx ? 'Save changes' : 'Add transaction';
     $('#tx-delete').hidden = !tx;
@@ -586,7 +601,8 @@
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) { showError('date', 'Pick a valid date.'); ok = false; }
     if (!ok) { $('#tx-form .has-error input, #tx-form .has-error button')?.focus(); return; }
 
-    const data = { type: ui.form.type, amount, category: ui.form.category, date, note };
+    const repeatOn = !$('#tx-repeat').closest('.repeat-toggle').hidden && $('#tx-repeat').checked;
+    const data = { type: ui.form.type, amount, category: ui.form.category, date, note, repeat: repeatOn ? 'monthly' : null };
     const key = date.slice(0, 7);
     const before = budgetRatios(key);
     if (ui.form.editingId) {
@@ -731,10 +747,13 @@
     $('#tx-delete').addEventListener('click', async () => {
       const id = ui.form.editingId;
       if (!id) return;
-      if (!(await confirmDialog({ title: 'Delete transaction?', text: 'This transaction will be removed permanently.' }))) return;
+      const removed = Store.get(id);
+      if (removed && removed.repeat === 'monthly'
+        && !(await confirmDialog({ title: 'Delete repeating transaction?', text: 'It stops repeating. Copies already added in other months stay.' }))) return;
       Store.remove(id);
       closeModal('tx-modal');
-      toast('Transaction deleted', 'danger');
+      // Undo instead of an "are you sure" step: deleting is quick, and a mistake is one tap away from fixed.
+      toast('Transaction deleted', 'danger', { label: 'Undo', run: () => { if (Store.restore(removed)) { toast('Transaction restored'); render(); } } });
       render();
     });
 
@@ -839,8 +858,18 @@
   }
 
   /* ---------- start ---------- */
+  const repeated = Store.runRepeats();
+  // Back on the app after midnight or a new month: add any repeating transactions now due.
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && Store.runRepeats()) render();
+  });
   applyTheme(Store.settings().theme);
   applyAccent(Store.settings().accent);
   bindEvents();
   route();
+  if (repeated) toast(`Added ${repeated} repeating transaction${repeated === 1 ? '' : 's'} for this month`, 'info');
+  // Works offline and can be installed (sw.js caches the app files).
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+    window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+  }
 })();
