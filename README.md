@@ -13,7 +13,8 @@ The interface follows a "Soft & Cool" glassmorphic design system: a cool slate c
 | Feature | Description |
 |---|---|
 | Dashboard | Monthly balance hero card that changes colour as you approach your budget, income / expense / daily-average stats, recent transactions, a spending donut and a smart insight card |
-| Add / edit / delete | Bottom-sheet form (centred dialog on desktop) with amount, type, category, date and note, plus validation |
+| Add / edit / delete | Bottom-sheet form (centred dialog on desktop) with amount, type, category, date and note, plus validation. Deleting shows an **Undo** for a few seconds instead of an "are you sure" step |
+| Repeat every month | Mark rent, a data pack or a monthly allowance to repeat: it is added again on the same day each month (the last day in shorter months) when you next open the app. A copy you delete is not added again |
 | Transactions | Search, type pills, category and month filters, grouped by day with daily totals |
 | Reports | Spending split by category, income vs expenses for the last 6 months, top categories, savings rate |
 | Budget | Overall monthly limit plus optional per-category limits; warnings at 80% and when you go over |
@@ -24,6 +25,7 @@ The interface follows a "Soft & Cool" glassmorphic design system: a cool slate c
 | Colour themes | Five soft accent themes — Rose, Lavender, Sage, Peach and Ocean — each with a faintly tinted canvas; expenses and warnings stay red in every theme |
 | Responsive | Fixed sidebar on desktop, floating glass bottom navigation on mobile |
 | Keyboard | Press <kbd>N</kbd> to add a transaction, <kbd>Esc</kbd> to close dialogs |
+| Works offline | A service worker (`sw.js`) keeps the app's files, so it opens without internet and installs to the home screen like an app |
 
 All data is stored in the browser with `localStorage`, so it stays on the device.
 
@@ -44,6 +46,7 @@ Repository **Settings → Pages → Build and deployment → Deploy from a branc
 ExpenseTracker/
 ├── index.html        # Markup for all views, icon sprite, dialogs, SEO / Open Graph meta
 ├── manifest.webmanifest  # Install-to-home-screen name, colours and icons
+├── sw.js             # Offline cache for the app's files
 ├── assets/           # Favicon, app icons, og-image.png (1200×630 link preview)
 ├── css/
 │   └── style.css     # Design tokens, light/dark themes, components, responsive layout

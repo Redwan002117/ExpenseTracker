@@ -113,7 +113,9 @@ const Store = (() => {
           category: t.category,
           date: t.date,
           note: String(t.note || '').slice(0, 120),
-          ...(t.sample ? { sample: true } : {})
+          ...(t.sample ? { sample: true } : {}),
+          ...(t.repeat === 'monthly' ? { repeat: 'monthly', repeatDone: /^\d{4}-\d{2}$/.test(t.repeatDone) ? t.repeatDone : t.date.slice(0, 7) } : {}),
+          ...(t.repeatOf ? { repeatOf: String(t.repeatOf) } : {})
         }))
       : [];
     return { transactions, settings };
@@ -195,6 +197,7 @@ const Store = (() => {
 
   function add(data) {
     const tx = { ...data, id: uid(), amount: round2(Number(data.amount)) };
+    if (tx.repeat === 'monthly') tx.repeatDone = tx.date.slice(0, 7); else delete tx.repeat;
     state.transactions.push(tx);
     save();
     return tx;
@@ -203,10 +206,55 @@ const Store = (() => {
   function update(id, data) {
     const i = state.transactions.findIndex(t => t.id === id);
     if (i === -1) return null;
-    state.transactions[i] = { ...state.transactions[i], ...data, id, amount: round2(Number(data.amount)) };
-    delete state.transactions[i].sample;  // once edited, it's the user's own entry
+    const prev = state.transactions[i];
+    state.transactions[i] = { ...prev, ...data, id, amount: round2(Number(data.amount)) };
+    const t = state.transactions[i];
+    delete t.sample;  // once edited, it's the user's own entry
+    if (t.repeat === 'monthly') {
+      // Turning repeat on starts from this transaction's month; keep the progress otherwise.
+      if (prev.repeat !== 'monthly' || !t.repeatDone || t.repeatDone < t.date.slice(0, 7)) t.repeatDone = t.date.slice(0, 7);
+    } else {
+      delete t.repeat;
+      delete t.repeatDone;
+    }
     save();
     return state.transactions[i];
+  }
+
+  /** Puts a deleted transaction back exactly as it was (Undo). */
+  function restore(tx) {
+    if (!tx || !isValidTransaction(tx) || state.transactions.some(t => t.id === tx.id)) return false;
+    state.transactions.push({ ...tx });
+    save();
+    return true;
+  }
+
+  /**
+   * Repeating transactions: a transaction marked "repeat monthly" is copied into
+   * every later month on the same day (the last day in shorter months), once
+   * that day has come. `repeatDone` remembers the last month copied, so a copy
+   * the user deletes is not made again. Returns how many copies were added.
+   */
+  function runRepeats(today = todayISO()) {
+    const nowKey = today.slice(0, 7);
+    let added = 0;
+    state.transactions.filter(t => t.repeat === 'monthly').forEach(t => {
+      const day = Number(t.date.slice(8, 10));
+      let key = shiftMonth(t.repeatDone || t.date.slice(0, 7), 1);
+      while (key <= nowKey) {
+        const date = `${key}-${pad(Math.min(day, daysInMonth(key)))}`;
+        if (date > today) break;
+        state.transactions.push({
+          id: uid() + added, type: t.type, amount: t.amount, category: t.category,
+          date, note: t.note, repeatOf: t.id
+        });
+        t.repeatDone = key;
+        added++;
+        key = shiftMonth(key, 1);
+      }
+    });
+    if (added) save();
+    return added;
   }
 
   function remove(id) {
@@ -330,7 +378,7 @@ const Store = (() => {
 
   return {
     CATEGORIES, CURRENCIES, ACCENTS,
-    all, inMonth, get, add, update, remove, totals, byCategory,
+    all, inMonth, get, add, update, remove, restore, runRepeats, totals, byCategory,
     settings, setSettings,
     exportJSON, importJSON, clearAll, loadSample, removeSample, hasSample,
     todayISO, monthKey, shiftMonth, daysInMonth, getCategory, round2
